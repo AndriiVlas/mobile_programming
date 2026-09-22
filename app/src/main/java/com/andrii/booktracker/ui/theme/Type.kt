@@ -1,4 +1,4 @@
-package com.example.lb1.ui.theme
+package com.andrii.booktracker.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

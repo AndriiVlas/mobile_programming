@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.lb1"
+    namespace = "com.andrii.booktracker"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.lb1"
+        applicationId = "com.andrii.booktracker"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
@@ -38,6 +38,7 @@ android {
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
