@@ -1,4 +1,4 @@
-package com.example.lb1.model
+package com.andrii.booktracker.model
 
 data class Book(
     val id: Int,

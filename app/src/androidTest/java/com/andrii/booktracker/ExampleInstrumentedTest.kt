@@ -1,4 +1,4 @@
-package com.example.lb1
+package com.andrii.booktracker
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

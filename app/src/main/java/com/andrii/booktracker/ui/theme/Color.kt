@@ -1,4 +1,4 @@
-package com.example.lb1.ui.theme
+package com.andrii.booktracker.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,4 +1,4 @@
-package com.example.lb1
+package com.andrii.booktracker
 
 import org.junit.Test
 
