@@ -11,12 +11,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
 import com.andrii.booktracker.model.Book
-import com.andrii.booktracker.ui.screens.AddBookForm
+import com.andrii.booktracker.navigation.AddBookRoute
+import com.andrii.booktracker.navigation.BookListRoute
+import com.andrii.booktracker.ui.screens.AddBookScreen
 import com.andrii.booktracker.ui.screens.BookList
+import com.andrii.booktracker.ui.screens.BookListScreen
+import com.andrii.booktracker.navigation.BookDetailsRoute
+import com.andrii.booktracker.ui.screens.BookDetailsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,72 +58,85 @@ fun BookTrackerApp() {
         )
     }
 
-    var showAddForm by remember {
-        mutableStateOf(false)
-    }
+    val backStack =
+        rememberNavBackStack(
+            BookListRoute
+        )
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if(showAddForm) {
-                            stringResource(R.string.add_book_title)
-                        } else {
-                            stringResource(R.string.books_title)
-                        }
-                    )
-                }
-            )
+    NavDisplay(
+        backStack = backStack,
+        onBack = {
+            backStack.removeLastOrNull()
         },
-        floatingActionButton = {
-            if(!showAddForm) {
-                FloatingActionButton(
-                    onClick = {
-                        showAddForm = true
+        entryProvider = entryProvider {
+            entry<BookListRoute> {
+                BookListScreen(
+                    books = books,
+                    onBookClick = { bookId -> backStack.add(BookDetailsRoute(bookId = bookId)) },
+                    onAddBook = {
+                        backStack.add(AddBookRoute)
                     }
-                ) {
-                    Text("+")
-                }
+                )
             }
-        }
-    ) { innerPadding ->
-        if (showAddForm) {
-            AddBookForm(
-                modifier = Modifier.padding(innerPadding),
-                onCancel = {
-                    showAddForm = false
-                },
-                onAddBook = {
+
+            entry<AddBookRoute> {
+                AddBookScreen(
+                    onCancel = {
+                        backStack.removeLastOrNull()
+                    },
+                    onAddBook = {
                         title,
                         author,
                         description,
                         isRead ->
-
-                    val nextId =
-                        (books.maxOfOrNull {
+                        val nextId = (books.maxOfOrNull {
                             it.id
                         } ?: 0) + 1
+                        books = books + Book(
+                            id = nextId,
+                            title = title,
+                            author = author,
+                            description = description,
+                            isRead = isRead
+                        )
+                        backStack.removeLastOrNull()
+                    },
+                )
+            }
 
-                    val newBook = Book(
-                        id = nextId,
-                        title = title,
-                        author = author,
-                        description = description,
-                        isRead = isRead
-                    )
-
-                    books = books + newBook
-
-                    showAddForm = false
+            entry<BookDetailsRoute> { route ->
+                val book = books.find {
+                    it.id == route.bookId
                 }
-            )
-        } else {
-            BookList(
-                books = books,
-                modifier = Modifier.padding(innerPadding)
-            )
+
+                BookDetailsScreen(
+                    book = book,
+                    onBack = {
+                        backStack.removeLastOrNull()
+                    },
+                    onToggleRead = {
+                        books = toggleBookRead(
+                            books = books,
+                            bookId = route.bookId
+                        )
+                    }
+                )
+            }
         }
+    )
+}
+
+private fun toggleBookRead(
+    books: List<Book>,
+    bookId: Int
+): List<Book> {
+    return books.map {
+            book -> if (book.id == bookId) {
+        book.copy(
+            isRead = !book.isRead
+        )
+    } else {
+        book
+    }
     }
 }
