@@ -19,6 +19,7 @@ import com.andrii.booktracker.ui.components.BookCard
 @Composable
 fun BookList (
     books: List<Book>,
+    onBookClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (books.isEmpty()) {
@@ -40,7 +41,12 @@ fun BookList (
             items = books,
             key = {book -> book.id}
         ) { book ->
-            BookCard(book)
+            BookCard(
+                book = book,
+                onClick = {
+                    onBookClick(book.id)
+                }
+            )
         }
     }
 }

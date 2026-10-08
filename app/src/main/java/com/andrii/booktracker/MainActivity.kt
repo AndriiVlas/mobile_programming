@@ -24,12 +24,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun BookTrackerPreview() {
-    BookList(
-        books = listOf(),
-        modifier = Modifier.padding(8.dp)
-    )
-}
