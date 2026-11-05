@@ -28,7 +28,7 @@ class AppContainer(
     }
 
     companion object {
-        private const val BASE_URL = "https://gutendex1.com"
+        private const val BASE_URL = "https://gutendex.com/"
     }
 
     private val retrofit =
