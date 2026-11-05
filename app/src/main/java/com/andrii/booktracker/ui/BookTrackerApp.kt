@@ -42,10 +42,11 @@ fun BookTrackerApp(
             entry<BookListRoute> {
                 BookListScreen(
                     books = books,
+                    isLoading = uiState.isLoading,
+                    errorMessage = uiState.errorMessage,
                     onBookClick = { bookId -> backStack.add(BookDetailsRoute(bookId = bookId)) },
-                    onAddBook = {
-                        backStack.add(AddBookRoute)
-                    }
+                    onAddBook = { backStack.add(AddBookRoute) },
+                    onRefresh = { bookViewModel.refreshBooks() }
                 )
             }
 
