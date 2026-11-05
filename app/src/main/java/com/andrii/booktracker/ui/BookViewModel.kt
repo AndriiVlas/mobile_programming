@@ -10,26 +10,37 @@ import com.andrii.booktracker.data.BookRepository
 import com.andrii.booktracker.model.Book
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 
 
 class BookViewModel (private val repository: BookRepository) : ViewModel() {
-    val uiState: StateFlow<BookListUiState> =
-        repository
-            .observeBooks()
-            .map { books ->
-                BookListUiState(
-                    books = books
-                )
-            }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = BookListUiState()
-            )
+    private data class RefreshUiState(
+        val isLoading: Boolean = false,
+        val errorMessage: String? = null
+    )
+
+    private val _refreshState = MutableStateFlow(RefreshUiState())
+
+    val uiState: StateFlow<BookListUiState> = combine(
+        repository.observeBooks(),
+        _refreshState
+    ) { books, refreshState ->
+        BookListUiState(
+            books = books,
+            isLoading = refreshState.isLoading,
+            errorMessage = refreshState.errorMessage
+        )
+    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = BookListUiState()
+        )
 
     fun addBook(
         title: String,
@@ -77,13 +88,33 @@ class BookViewModel (private val repository: BookRepository) : ViewModel() {
             viewModelFactory {
                 initializer {
                     val application = this[APPLICATION_KEY] as BookTrackerApplication
-                    val reository = application.container.bookRepository
+                    val repository = application.container.bookRepository
 
                     BookViewModel(
-                        repository = reository
+                        repository = repository
                     )
                 }
             }
+    }
+
+    fun refreshBooks() {
+        viewModelScope.launch {
+            _refreshState.update {
+                it.copy(
+                    isLoading = true,
+                    errorMessage = null
+                )
+            }
+
+            try {
+                val result = repository.refreshBooks()
+                if (!result.isSuccess) {
+                    _refreshState.update { it.copy(errorMessage = result.errorMessage) }
+                }
+            } finally {
+                _refreshState.update { it.copy(isLoading = false) }
+            }
+        }
     }
 }
 
